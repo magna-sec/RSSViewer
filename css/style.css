@@ -207,6 +207,49 @@ body {
 
 .error-msg { padding: 20px; color: var(--danger); font-size: 12px; line-height: 1.7; }
 
+/* ── Loading screen ──────────────────────────────────────────── */
+#load-screen {
+    padding: 20px 16px;
+    max-width: 520px;
+    font-size: 12px;
+}
+.load-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+.load-stats {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 14px;
+    font-size: 11px;
+    color: var(--muted);
+}
+.load-stats strong { color: var(--text); font-size: 18px; font-weight: 700; display: block; }
+.load-log {
+    border-left: 2px solid var(--card-border);
+    padding-left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 260px;
+    overflow: hidden;
+}
+.load-entry {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: fadein 0.2s ease;
+}
+.load-entry.ok   { color: var(--success); }
+.load-entry.fail { color: var(--danger);  opacity: 0.6; }
+@keyframes fadein { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
+
 .article-item {
     border: 1px solid var(--card-border);
     border-radius: 10px;

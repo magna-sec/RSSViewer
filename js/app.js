@@ -28,12 +28,12 @@ let openIdx       = null;
 // ── Proxy ──────────────────────────────────────────────────────
 async function proxyFetch(url) {
   try {
-    const r = await fetch(WORKER + encodeURIComponent(url), {signal: AbortSignal.timeout(8000)});
+    const r = await fetch(WORKER + encodeURIComponent(url), {signal: AbortSignal.timeout(5000)});
     if (r.ok) return await r.text();
   } catch (_) {}
   for (const proxy of FALLBACKS) {
     try {
-      const r = await fetch(proxy(url), {signal: AbortSignal.timeout(8000)});
+      const r = await fetch(proxy(url), {signal: AbortSignal.timeout(5000)});
       if (!r.ok) continue;
       const ct   = r.headers.get('content-type') || '';
       const body = ct.includes('json') ? await r.json() : await r.text();
@@ -220,20 +220,51 @@ async function fetchAll() {
   document.getElementById('progress-wrap').style.display = 'block';
   document.getElementById('progress-bar').style.width    = '0%';
 
-  let done = 0;
   const total = FEEDS.length;
+  const state = { done: 0, ok: 0, failed: 0, articleCount: 0, log: [] };
 
-  const tick = () => {
-    done++;
-    document.getElementById('progress-bar').style.width = (done / total * 100) + '%';
-    document.getElementById('subtitle').textContent = `loading ${done}/${total} feeds…`;
-  };
+  // Show live loading screen in the articles pane
+  document.getElementById('articles').innerHTML = `
+    <div id="load-screen">
+      <div class="load-title">&#x25A0; Fetching feeds<span class="blink"> _</span></div>
+      <div class="load-stats">
+        <div><strong id="load-done">0 / ${total}</strong>feeds loaded</div>
+        <div><strong id="load-count">0</strong>articles found</div>
+        <div><strong id="load-failed" style="color:var(--danger)">0</strong>failed</div>
+      </div>
+      <div id="load-log"></div>
+    </div>`;
+
+  function tick(feed, articles, success) {
+    state.done++;
+    if (success) { state.ok++; state.articleCount += articles.length; }
+    else         { state.failed++; }
+    state.log.push({name: feed.name, ok: success, count: articles.length});
+
+    const pct = (state.done / total * 100);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('subtitle').textContent     = `loading ${state.done}/${total} feeds…`;
+    document.getElementById('load-done').textContent    = `${state.done} / ${total} `;
+    document.getElementById('load-count').textContent   = state.articleCount.toLocaleString();
+    document.getElementById('load-failed').textContent  = state.failed;
+
+    const logEl = document.getElementById('load-log');
+    if (logEl) {
+      const entry = document.createElement('div');
+      entry.className = 'load-entry ' + (success ? 'ok' : 'fail');
+      entry.textContent = (success ? '✓ ' : '✗ ') + feed.name +
+                          (success ? ` — ${articles.length} articles` : ' — failed');
+      logEl.prepend(entry);
+      // keep last 12 visible
+      while (logEl.children.length > 12) logEl.removeChild(logEl.lastChild);
+    }
+  }
 
   const results = await Promise.allSettled(
     FEEDS.map(feed =>
       proxyFetch(feed.url)
-        .then(text => { tick(); return parseFeed(text, feed); })
-        .catch(()  => { tick(); return []; })
+        .then(text  => { const a = parseFeed(text, feed); tick(feed, a, true);  return a; })
+        .catch(()   => {                                   tick(feed, [], false); return []; })
     )
   );
 
@@ -245,12 +276,12 @@ async function fetchAll() {
 
   document.getElementById('progress-wrap').style.display = 'none';
   document.getElementById('refresh-btn').disabled = false;
-  document.getElementById('all-feeds-btn').querySelector('.count').textContent = articles.length;
+  document.getElementById('all-feeds-btn').querySelector('.count').textContent = articles.length.toLocaleString();
 
-  const ok  = results.filter(r => r.status === 'fulfilled' && r.value.length).length;
   const now = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-  document.getElementById('subtitle').textContent = `${articles.length} articles · ${ok}/${total} feeds · ${now}`;
-  setStatus(`${articles.length} articles from ${ok} feeds · updated ${now} · source: github.com/mr-r3b00t/cyber_rss`);
+  document.getElementById('subtitle').textContent =
+    `${articles.length.toLocaleString()} articles · ${state.ok}/${total} feeds · ${now}`;
+  setStatus(`${articles.length.toLocaleString()} articles from ${state.ok} feeds · ${state.failed} failed · updated ${now} · source: github.com/mr-r3b00t/cyber_rss`);
 
   if (mode === 'all') {
     const filtered = currentFilter === 'all' ? allArticles : allArticles.filter(a => a.category === currentFilter);
