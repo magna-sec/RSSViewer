@@ -6,60 +6,97 @@
 <title>Cyber Feed Reader</title>
 <style>
   :root {
-    --bg: #0d1117;
-    --bg2: #161b22;
-    --bg3: #21262d;
-    --border: #30363d;
-    --text: #e6edf3;
-    --muted: #7d8590;
-    --accent: #58a6ff;
-    --accent2: #3fb950;
-    --danger: #f85149;
-    --warn: #d29922;
-    --tag-bg: #1f2937;
+    --bg:          #0d1b3e;
+    --bg2:         rgba(0,10,30,.5);
+    --card:        rgba(255,255,255,.07);
+    --card-border: rgba(255,255,255,.18);
+    --text:        #e8f4ff;
+    --muted:       rgba(200,220,255,.5);
+    --subtle:      rgba(200,220,255,.75);
+    --accent:      #4fa3e0;
+    --accent2:     #a8d4f5;
+    --accent-btn:  #2d7dbf;
+    --success:     #3cb878;
+    --danger:      #e05050;
+    --warning:     #e0a030;
+    --glow:        rgba(79,163,224,.28);
+    --tag-bg:      rgba(255,255,255,.08);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Courier New', 'Consolas', monospace; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 100% 55% at 30% -10%, rgba(50,100,220,.55), transparent),
+      radial-gradient(ellipse 60%  40% at 75%  -5%, rgba(79,163,224,.35), transparent),
+      radial-gradient(ellipse 50%  60% at 90% 100%, rgba(30,60,160,.5),   transparent),
+      radial-gradient(ellipse 40%  30% at 10%  90%, rgba(20,50,120,.4),   transparent);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Scrollbars ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 4px; }
+
+  /* ── Header ── */
   #header {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
+    background: rgba(8,20,65,.75);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom: 1px solid var(--card-border);
     padding: 10px 16px;
     display: flex;
     align-items: center;
     gap: 12px;
     flex-shrink: 0;
   }
-  #header h1 { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent); text-transform: uppercase; }
+  #header h1 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: uppercase;
+  }
   #header .subtitle { font-size: 11px; color: var(--muted); }
   .blink { animation: blink 1.2s step-end infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
   #layout { display: flex; flex: 1; overflow: hidden; }
 
+  /* ── Sidebar ── */
   #sidebar {
     width: 260px;
     flex-shrink: 0;
-    background: var(--bg2);
-    border-right: 1px solid var(--border);
+    background: rgba(8,20,65,.6);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border-right: 1px solid var(--card-border);
     overflow-y: auto;
     display: flex;
     flex-direction: column;
   }
-  #sidebar::-webkit-scrollbar { width: 4px; }
-  #sidebar::-webkit-scrollbar-thumb { background: var(--border); }
 
   .sidebar-status {
     padding: 8px 12px;
     font-size: 11px;
     color: var(--muted);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(255,255,255,.1);
     display: flex;
     align-items: center;
     gap: 6px;
   }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; }
-  .dot.loading { background: var(--warn); animation: pulse 1s ease-in-out infinite; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+  .dot.loading { background: var(--warning); animation: pulse 1s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
   .category-header {
@@ -69,38 +106,43 @@
     letter-spacing: 0.12em;
     color: var(--muted);
     text-transform: uppercase;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid rgba(255,255,255,.07);
   }
   .category-header:first-of-type { border-top: none; }
 
   .feed-item {
     padding: 7px 12px;
     font-size: 12px;
-    color: var(--text);
+    color: var(--subtle);
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: background 0.1s;
+    transition: background 0.15s;
     border-left: 2px solid transparent;
   }
-  .feed-item:hover { background: var(--bg3); }
-  .feed-item.active { background: var(--bg3); border-left-color: var(--accent); color: var(--accent); }
+  .feed-item:hover { background: rgba(255,255,255,.06); }
+  .feed-item.active {
+    background: rgba(79,163,224,.15);
+    border-left-color: var(--accent);
+    color: var(--accent2);
+  }
   .feed-item .feed-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .feed-item .feed-icon { font-size: 10px; color: var(--muted); flex-shrink: 0; }
 
+  /* ── Main area ── */
   #main {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--bg);
   }
 
   #feed-header {
     padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg2);
+    border-bottom: 1px solid var(--card-border);
+    background: rgba(8,20,65,.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -109,27 +151,29 @@
   }
   #feed-title { font-size: 13px; font-weight: 700; color: var(--text); }
   #feed-meta { font-size: 11px; color: var(--muted); margin-left: auto; }
+
   #refresh-btn {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
+    background: rgba(79,163,224,.15);
+    border: 1px solid rgba(255,255,255,.2);
+    color: var(--subtle);
     font-family: inherit;
     font-size: 11px;
-    padding: 3px 8px;
+    padding: 3px 10px;
     cursor: pointer;
-    border-radius: 3px;
-    transition: color 0.1s, border-color 0.1s;
+    border-radius: 6px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
-  #refresh-btn:hover { color: var(--accent); border-color: var(--accent); }
-
-  #articles {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0;
+  #refresh-btn:hover {
+    background: rgba(79,163,224,.3);
+    color: var(--accent2);
+    border-color: var(--accent);
   }
-  #articles::-webkit-scrollbar { width: 4px; }
-  #articles::-webkit-scrollbar-thumb { background: var(--border); }
 
+  #articles { flex: 1; overflow-y: auto; }
+
+  /* ── Placeholder ── */
   .placeholder {
     display: flex;
     flex-direction: column;
@@ -140,8 +184,8 @@
     color: var(--muted);
     font-size: 12px;
   }
-  .placeholder .big { font-size: 32px; }
-  .placeholder .hint { font-size: 11px; opacity: 0.6; }
+  .placeholder .big { font-size: 32px; opacity: 0.4; }
+  .placeholder .hint { font-size: 11px; opacity: 0.5; }
 
   .loading-msg {
     display: flex;
@@ -157,25 +201,43 @@
     padding: 20px;
     color: var(--danger);
     font-size: 12px;
+    line-height: 1.6;
   }
 
+  /* ── Article items (glass cards) ── */
   .article-item {
-    border-bottom: 1px solid var(--border);
+    margin: 10px 12px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px;
     padding: 14px 16px;
     cursor: pointer;
-    transition: background 0.1s;
+    background: rgba(255,255,255,.04);
+    backdrop-filter: blur(10px) saturate(1.2);
+    -webkit-backdrop-filter: blur(10px) saturate(1.2);
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.1);
   }
-  .article-item:hover { background: var(--bg2); }
-  .article-item.open { background: var(--bg2); }
+  .article-item:hover {
+    background: rgba(79,163,224,.1);
+    border-color: rgba(255,255,255,.22);
+    box-shadow: 0 6px 28px rgba(0,0,0,.35), 0 0 0 1px var(--glow), inset 0 1px 0 rgba(255,255,255,.15);
+  }
+  .article-item.open {
+    background: rgba(79,163,224,.13);
+    border-color: rgba(79,163,224,.45);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4), 0 0 0 1px var(--glow), inset 0 1px 0 rgba(255,255,255,.18);
+  }
 
   .article-title {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--text);
-    line-height: 1.4;
-    margin-bottom: 5px;
+    line-height: 1.45;
+    margin-bottom: 6px;
+    transition: color 0.15s;
   }
-  .article-item:hover .article-title { color: var(--accent); }
+  .article-item:hover .article-title,
+  .article-item.open .article-title { color: var(--accent2); }
 
   .article-meta {
     font-size: 11px;
@@ -183,54 +245,70 @@
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    align-items: center;
   }
-  .article-meta span { display: flex; align-items: center; gap: 4px; }
 
   .article-body {
     display: none;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,.1);
   }
   .article-body.visible { display: block; }
-  .article-body p { font-size: 12px; color: var(--muted); line-height: 1.7; font-family: Georgia, serif; margin-bottom: 8px; }
+  .article-body p {
+    font-size: 12px;
+    color: var(--subtle);
+    line-height: 1.75;
+    margin-bottom: 10px;
+  }
   .article-link {
     display: inline-block;
-    margin-top: 8px;
+    margin-top: 6px;
     font-size: 11px;
-    color: var(--accent);
+    color: var(--accent2);
     text-decoration: none;
-    border: 1px solid var(--border);
-    padding: 3px 10px;
-    border-radius: 3px;
-    transition: border-color 0.1s;
+    background: rgba(79,163,224,.15);
+    border: 1px solid rgba(79,163,224,.35);
+    padding: 4px 12px;
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: background 0.15s, border-color 0.15s;
   }
-  .article-link:hover { border-color: var(--accent); }
+  .article-link:hover {
+    background: rgba(79,163,224,.28);
+    border-color: var(--accent);
+  }
 
+  /* ── Tags ── */
   .tag {
     display: inline-block;
-    background: var(--tag-bg);
+    background: rgba(255,255,255,.08);
     color: var(--muted);
     font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 2px;
-    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,.14);
+    font-weight: 500;
   }
-  .tag.cert { color: var(--warn); border-color: var(--warn); }
-  .tag.vuln { color: var(--danger); border-color: var(--danger); }
-  .tag.news { color: var(--accent); border-color: var(--accent); }
-  .tag.malware { color: #d2a8ff; border-color: #d2a8ff; }
-  .tag.exploit { color: var(--danger); border-color: var(--danger); }
-  .tag.vendor { color: var(--accent2); border-color: var(--accent2); }
-  .tag.community { color: var(--accent2); border-color: var(--accent2); }
+  .tag.cert    { color: var(--warning);  border-color: rgba(224,160,48,.4);  background: rgba(224,160,48,.1); }
+  .tag.vuln    { color: var(--danger);   border-color: rgba(224,80,80,.4);   background: rgba(224,80,80,.1); }
+  .tag.news    { color: var(--accent);   border-color: rgba(79,163,224,.4);  background: rgba(79,163,224,.1); }
+  .tag.malware { color: #c4a8f5;         border-color: rgba(196,168,245,.4); background: rgba(196,168,245,.1); }
+  .tag.exploit { color: var(--danger);   border-color: rgba(224,80,80,.4);   background: rgba(224,80,80,.1); }
+  .tag.vendor  { color: var(--success);  border-color: rgba(60,184,120,.4);  background: rgba(60,184,120,.1); }
+  .tag.community { color: var(--success); border-color: rgba(60,184,120,.4); background: rgba(60,184,120,.1); }
 
+  /* ── Status bar ── */
   #statusbar {
-    padding: 4px 12px;
+    padding: 4px 14px;
     font-size: 10px;
     color: var(--muted);
-    border-top: 1px solid var(--border);
-    background: var(--bg2);
+    border-top: 1px solid var(--card-border);
+    background: rgba(8,20,65,.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     flex-shrink: 0;
     letter-spacing: 0.04em;
   }
@@ -270,36 +348,49 @@
   </div>
 </div>
 
-<div id="statusbar" id="statusbar">ready</div>
+<div id="statusbar">ready</div>
 
 <script>
 const README_URL = 'https://raw.githubusercontent.com/mr-r3b00t/cyber_rss/refs/heads/main/README.md';
 
+// Proxy chain — tried in order until one returns content
 const PROXIES = [
-  { url: 'https://api.allorigins.win/get?url=', extract: d => d.contents },
-  { url: 'https://api.codetabs.com/v1/proxy?quest=', extract: d => typeof d === 'string' ? d : JSON.stringify(d) },
-  { url: 'https://corsproxy.io/?', extract: d => typeof d === 'string' ? d : JSON.stringify(d) },
+  {
+    url: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+    extract: d => d.contents
+  },
+  {
+    url: u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    extract: d => typeof d === 'string' ? d : JSON.stringify(d)
+  },
+  {
+    url: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    extract: d => typeof d === 'string' ? d : JSON.stringify(d)
+  },
+  {
+    url: u => `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(u)}`,
+    extract: d => typeof d === 'string' ? d : JSON.stringify(d)
+  },
 ];
 
 async function proxyFetch(targetUrl) {
-  // Try direct first (works for some feeds like raw.githubusercontent.com)
+  // Try direct first (works for permissive origins like raw.githubusercontent.com)
   try {
     const r = await fetch(targetUrl);
     if (r.ok) return await r.text();
   } catch (_) {}
 
-  // Try each proxy in order
   for (const proxy of PROXIES) {
     try {
-      const r = await fetch(proxy.url + encodeURIComponent(targetUrl));
+      const r = await fetch(proxy.url(targetUrl), { signal: AbortSignal.timeout(8000) });
       if (!r.ok) continue;
       const ct = r.headers.get('content-type') || '';
       const body = ct.includes('json') ? await r.json() : await r.text();
       const text = typeof body === 'string' ? body : proxy.extract(body);
-      if (text && text.length > 0) return text;
+      if (text && text.length > 100) return text;
     } catch (_) {}
   }
-  throw new Error('all proxies failed for: ' + targetUrl);
+  throw new Error('all proxies failed — feed may block external access');
 }
 
 let feeds = [];
@@ -401,12 +492,18 @@ async function loadArticles(feed) {
     const text = await proxyFetch(feed.url);
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, 'text/xml');
+    const parserError = xml.querySelector('parsererror');
+    if (parserError) throw new Error('feed returned invalid XML');
     const items = Array.from(xml.querySelectorAll('item, entry'));
     if (!items.length) throw new Error('no items found in feed');
     renderArticles(items, feed);
     setStatus(`loaded ${items.length} articles from ${feed.name}`);
   } catch (e) {
-    container.innerHTML = `<div class="error-msg">&#x26A0; failed to load feed<br><br><span style="font-size:10px;opacity:0.7">${e.message}<br><br>Some feeds block proxy access. Try another feed.</span></div>`;
+    container.innerHTML = `<div class="error-msg">
+      &#x26A0; failed to load <strong>${feed.name}</strong><br><br>
+      <span style="opacity:0.7;font-size:11px">${e.message}<br><br>
+      Some feeds block all proxy services. Try a different feed, or open the URL directly in your browser.</span>
+    </div>`;
     setStatus('error loading feed: ' + e.message);
   }
 }
