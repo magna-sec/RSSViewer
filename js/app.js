@@ -148,7 +148,7 @@ function buildSidebar() {
       </div>`;
     }
   }
-  list.innerHTML = html;
+  list.insertAdjacentHTML('beforeend', html);
 }
 
 function setSidebarActive(which) {
