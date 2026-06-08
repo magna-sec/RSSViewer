@@ -1,609 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-skin="aero">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cyber Feed Reader</title>
-<style>
-  :root {
-    --bg:          #0d1b3e;
-    --bg2:         rgba(0,10,30,.5);
-    --card:        rgba(255,255,255,.07);
-    --card-border: rgba(255,255,255,.18);
-    --text:        #e8f4ff;
-    --muted:       rgba(200,220,255,.5);
-    --subtle:      rgba(200,220,255,.75);
-    --accent:      #4fa3e0;
-    --accent2:     #a8d4f5;
-    --accent-btn:  #2d7dbf;
-    --success:     #3cb878;
-    --danger:      #e05050;
-    --warning:     #e0a030;
-    --glow:        rgba(79,163,224,.28);
-    --tag-bg:      rgba(255,255,255,.08);
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    background-image:
-      radial-gradient(ellipse 100% 55% at 30% -10%, rgba(50,100,220,.55), transparent),
-      radial-gradient(ellipse 60%  40% at 75%  -5%, rgba(79,163,224,.35), transparent),
-      radial-gradient(ellipse 50%  60% at 90% 100%, rgba(30,60,160,.5),   transparent),
-      radial-gradient(ellipse 40%  30% at 10%  90%, rgba(20,50,120,.4),   transparent);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* ── Scrollbars ── */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 4px; }
-
-  /* ── Header ── */
-  #header {
-    background: rgba(8,20,65,.75);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border-bottom: 1px solid var(--card-border);
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-  }
-  #header h1 {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-transform: uppercase;
-  }
-  #header .subtitle { font-size: 11px; color: var(--muted); }
-  .blink { animation: blink 1.2s step-end infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-  #layout { display: flex; flex: 1; overflow: hidden; }
-
-  /* ── Sidebar ── */
-  #sidebar {
-    width: 260px;
-    flex-shrink: 0;
-    background: rgba(8,20,65,.6);
-    backdrop-filter: blur(16px) saturate(1.3);
-    -webkit-backdrop-filter: blur(16px) saturate(1.3);
-    border-right: 1px solid var(--card-border);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .sidebar-status {
-    padding: 8px 12px;
-    font-size: 11px;
-    color: var(--muted);
-    border-bottom: 1px solid rgba(255,255,255,.1);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
-  .dot.loading { background: var(--warning); animation: pulse 1s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-  .category-header {
-    padding: 10px 12px 4px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-    text-transform: uppercase;
-    border-top: 1px solid rgba(255,255,255,.07);
-  }
-  .category-header:first-of-type { border-top: none; }
-
-  .feed-item {
-    padding: 7px 12px;
-    font-size: 12px;
-    color: var(--subtle);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background 0.15s;
-    border-left: 2px solid transparent;
-  }
-  .feed-item:hover { background: rgba(255,255,255,.06); }
-  .feed-item.active {
-    background: rgba(79,163,224,.15);
-    border-left-color: var(--accent);
-    color: var(--accent2);
-  }
-  .feed-item .feed-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-  /* ── Main area ── */
-  #main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  #feed-header {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--card-border);
-    background: rgba(8,20,65,.55);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-    min-height: 42px;
-  }
-  #feed-title { font-size: 13px; font-weight: 700; color: var(--text); }
-  #feed-meta { font-size: 11px; color: var(--muted); margin-left: auto; }
-
-  #refresh-btn {
-    background: rgba(79,163,224,.15);
-    border: 1px solid rgba(255,255,255,.2);
-    color: var(--subtle);
-    font-family: inherit;
-    font-size: 11px;
-    padding: 3px 10px;
-    cursor: pointer;
-    border-radius: 6px;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
-  }
-  #refresh-btn:hover {
-    background: rgba(79,163,224,.3);
-    color: var(--accent2);
-    border-color: var(--accent);
-  }
-
-  #articles { flex: 1; overflow-y: auto; }
-
-  /* ── Placeholder ── */
-  .placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    gap: 12px;
-    color: var(--muted);
-    font-size: 12px;
-  }
-  .placeholder .big { font-size: 32px; opacity: 0.4; }
-  .placeholder .hint { font-size: 11px; opacity: 0.5; }
-
-  .loading-msg {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    gap: 10px;
-    color: var(--muted);
-    font-size: 12px;
-  }
-
-  .error-msg {
-    padding: 20px;
-    color: var(--danger);
-    font-size: 12px;
-    line-height: 1.6;
-  }
-
-  /* ── Article items (glass cards) ── */
-  .article-item {
-    margin: 10px 12px;
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 12px;
-    padding: 14px 16px;
-    cursor: pointer;
-    background: rgba(255,255,255,.04);
-    backdrop-filter: blur(10px) saturate(1.2);
-    -webkit-backdrop-filter: blur(10px) saturate(1.2);
-    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-    box-shadow: 0 4px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.1);
-  }
-  .article-item:hover {
-    background: rgba(79,163,224,.1);
-    border-color: rgba(255,255,255,.22);
-    box-shadow: 0 6px 28px rgba(0,0,0,.35), 0 0 0 1px var(--glow), inset 0 1px 0 rgba(255,255,255,.15);
-  }
-  .article-item.open {
-    background: rgba(79,163,224,.13);
-    border-color: rgba(79,163,224,.45);
-    box-shadow: 0 8px 32px rgba(0,0,0,.4), 0 0 0 1px var(--glow), inset 0 1px 0 rgba(255,255,255,.18);
-  }
-
-  .article-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    line-height: 1.45;
-    margin-bottom: 6px;
-    transition: color 0.15s;
-  }
-  .article-item:hover .article-title,
-  .article-item.open .article-title { color: var(--accent2); }
-
-  .article-meta {
-    font-size: 11px;
-    color: var(--muted);
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 4px;
-    align-items: center;
-  }
-
-  .article-body {
-    display: none;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255,255,255,.1);
-  }
-  .article-body.visible { display: block; }
-  .article-body p {
-    font-size: 12px;
-    color: var(--subtle);
-    line-height: 1.75;
-    margin-bottom: 10px;
-  }
-  .article-link {
-    display: inline-block;
-    margin-top: 6px;
-    font-size: 11px;
-    color: var(--accent2);
-    text-decoration: none;
-    background: rgba(79,163,224,.15);
-    border: 1px solid rgba(79,163,224,.35);
-    padding: 4px 12px;
-    border-radius: 6px;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .article-link:hover {
-    background: rgba(79,163,224,.28);
-    border-color: var(--accent);
-  }
-
-  /* ── Tags ── */
-  .tag {
-    display: inline-block;
-    background: rgba(255,255,255,.08);
-    color: var(--muted);
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 4px;
-    border: 1px solid rgba(255,255,255,.14);
-    font-weight: 500;
-  }
-  .tag.cert    { color: var(--warning);  border-color: rgba(224,160,48,.4);  background: rgba(224,160,48,.1); }
-  .tag.vuln    { color: var(--danger);   border-color: rgba(224,80,80,.4);   background: rgba(224,80,80,.1); }
-  .tag.news    { color: var(--accent);   border-color: rgba(79,163,224,.4);  background: rgba(79,163,224,.1); }
-  .tag.malware { color: #c4a8f5;         border-color: rgba(196,168,245,.4); background: rgba(196,168,245,.1); }
-  .tag.exploit { color: var(--danger);   border-color: rgba(224,80,80,.4);   background: rgba(224,80,80,.1); }
-  .tag.vendor  { color: var(--success);  border-color: rgba(60,184,120,.4);  background: rgba(60,184,120,.1); }
-  .tag.community { color: var(--success); border-color: rgba(60,184,120,.4); background: rgba(60,184,120,.1); }
-
-  /* ── Status bar ── */
-  #statusbar {
-    padding: 4px 14px;
-    font-size: 10px;
-    color: var(--muted);
-    border-top: 1px solid var(--card-border);
-    background: rgba(8,20,65,.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    flex-shrink: 0;
-    letter-spacing: 0.04em;
-  }
-</style>
+<script>
+  // Prevent flash of unstyled skin
+  (function(){var s=localStorage.getItem('bs-skin');if(s)document.documentElement.setAttribute('data-skin',s);})();
+</script>
+<link rel="stylesheet" href="css/skins.css">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <div id="header">
   <div>
     <h1>&#x25A0; CYBER FEED READER <span class="blink">_</span></h1>
-    <div class="subtitle">45 feeds &bull; 8 categories &bull; live intelligence</div>
+    <div id="subtitle">loading 45 feeds…</div>
   </div>
+  <button id="refresh-btn" onclick="refresh()" disabled>&#x21bb; refresh</button>
 </div>
 
 <div id="layout">
+
   <div id="sidebar">
     <div class="sidebar-status">
       <div class="dot loading" id="sidebar-dot"></div>
-      <span id="sidebar-label">loading feeds...</span>
+      <span id="sidebar-label">loading…</span>
     </div>
-    <div id="feed-list"></div>
+    <div id="feed-list">
+      <div class="sidebar-all-item" id="all-feeds-btn" onclick="selectAll()">
+        &#x25A0; All Feeds
+        <span class="count"></span>
+      </div>
+    </div>
   </div>
 
   <div id="main">
-    <div id="feed-header">
-      <span id="feed-title" style="color: var(--muted);">select a feed</span>
-      <span id="feed-meta"></span>
-      <button id="refresh-btn" style="display:none" onclick="refreshFeed()">&#x21bb; refresh</button>
+
+    <div id="filter-bar">
+      <button class="filter-btn active" data-cat="all"              onclick="setFilter('all')">All</button>
+      <button class="filter-btn"        data-cat="cert"             onclick="setFilter('cert')">&#x26A0; CERT</button>
+      <button class="filter-btn"        data-cat="news"             onclick="setFilter('news')">&#x1F4F0; News</button>
+      <button class="filter-btn"        data-cat="vulnerability"    onclick="setFilter('vulnerability')">&#x1F6A8; Vulns</button>
+      <button class="filter-btn"        data-cat="vendor_advisory"  onclick="setFilter('vendor_advisory')">&#x1F4E6; Advisory</button>
+      <button class="filter-btn"        data-cat="vendor_blog"      onclick="setFilter('vendor_blog')">&#x1F4DD; Vendor Blog</button>
+      <button class="filter-btn"        data-cat="malware_research" onclick="setFilter('malware_research')">&#x1F9EC; Malware</button>
+      <button class="filter-btn"        data-cat="exploit_research" onclick="setFilter('exploit_research')">&#x1F4A3; Exploits</button>
+      <button class="filter-btn"        data-cat="community"        onclick="setFilter('community')">&#x1F465; Community</button>
     </div>
+
+    <div id="feed-header" style="display:none">
+      <span id="feed-title"></span>
+      <span id="feed-meta"></span>
+    </div>
+
+    <div id="progress-wrap"><div id="progress-bar"></div></div>
+
     <div id="articles">
       <div class="placeholder">
         <div class="big">&#x25A1;</div>
-        <div>select a feed from the sidebar</div>
-        <div class="hint">51 cybersecurity sources &bull; click any feed to load articles</div>
+        <div>loading feeds…</div>
       </div>
     </div>
+
   </div>
 </div>
 
-<div id="statusbar">ready</div>
+<div id="statusbar">initialising…</div>
 
-<script>
-// Feed list sourced from https://github.com/mr-r3b00t/cyber_rss
-// Broken feeds removed after live testing (cyber.gov.au, checkpoint, rapid7, google TAG, ZDI blog)
-const FEEDS = [
-  {"name":"CERT-FR (ANSSI)","url":"https://www.cert.ssi.gouv.fr/feed/","category":"cert"},
-  {"name":"CISA Cybersecurity Advisories","url":"https://www.cisa.gov/cybersecurity-advisories/all.xml","category":"cert"},
-  {"name":"CISA ICS Advisories","url":"https://www.cisa.gov/cybersecurity-advisories/ics-advisories.xml","category":"cert"},
-  {"name":"CISA ICS Medical Advisories","url":"https://www.cisa.gov/cybersecurity-advisories/ics-medical-advisories.xml","category":"cert"},
-  {"name":"JPCERT/CC","url":"https://www.jpcert.or.jp/english/rss/jpcert-en.rdf","category":"cert"},
-  {"name":"JPCERT/CC Blog","url":"https://blogs.jpcert.or.jp/en/atom.xml","category":"cert"},
-  {"name":"UK NCSC All","url":"https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml","category":"cert"},
-  {"name":"UK NCSC Guidance","url":"https://www.ncsc.gov.uk/api/1/services/v1/guidance-rss-feed.xml","category":"cert"},
-  {"name":"UK NCSC News","url":"https://www.ncsc.gov.uk/api/1/services/v1/news-rss-feed.xml","category":"cert"},
-  {"name":"UK NCSC Reports","url":"https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml","category":"cert"},
-  {"name":"Bleeping Computer (forum)","url":"https://www.bleepingcomputer.com/forum45.xml","category":"news"},
-  {"name":"BleepingComputer","url":"https://www.bleepingcomputer.com/feed/","category":"news"},
-  {"name":"CyberScoop","url":"https://www.cyberscoop.com/feed","category":"news"},
-  {"name":"Dark Reading","url":"https://www.darkreading.com/rss.xml","category":"news"},
-  {"name":"Intelligence Online","url":"https://feeds.feedburner.com/IntelligenceOnline","category":"news"},
-  {"name":"Krebs on Security","url":"https://krebsonsecurity.com/feed/","category":"news"},
-  {"name":"Risky Business Podcast","url":"https://risky.biz/rss.xml","category":"news"},
-  {"name":"Schneier on Security","url":"https://www.schneier.com/feed/atom/","category":"news"},
-  {"name":"SecurityWeek","url":"https://feeds.feedburner.com/securityweek","category":"news"},
-  {"name":"The Hacker News","url":"https://feeds.feedburner.com/TheHackersNews","category":"news"},
-  {"name":"The Record","url":"https://therecord.media/feed/","category":"news"},
-  {"name":"CVEfeed.io","url":"https://cvefeed.io/rssfeed/latest.xml","category":"vulnerability"},
-  {"name":"FortiGuard PSIRT","url":"https://www.fortiguard.com/rss/ir.xml","category":"vulnerability"},
-  {"name":"Microsoft Security Updates","url":"https://api.msrc.microsoft.com/update-guide/rss","category":"vulnerability"},
-  {"name":"Palo Alto Security Advisories","url":"https://security.paloaltonetworks.com/rss.xml","category":"vulnerability"},
-  {"name":"Qualys Blog","url":"https://blog.qualys.com/feed","category":"vulnerability"},
-  {"name":"Apple Developer Releases","url":"https://developer.apple.com/news/releases/rss/releases.rss","category":"vendor_advisory"},
-  {"name":"Apple Newsroom","url":"https://www.apple.com/newsroom/rss-feed.rss","category":"vendor_advisory"},
-  {"name":"Cisco Security Blog","url":"https://blogs.cisco.com/security/feed","category":"vendor_advisory"},
-  {"name":"Cisco Talos Intelligence","url":"https://feeds.feedburner.com/feedburner/Talos","category":"vendor_blog"},
-  {"name":"Elastic Security Labs","url":"https://www.elastic.co/security-labs/rss/feed.xml","category":"vendor_blog"},
-  {"name":"Fortinet Threat Research","url":"https://feeds.fortinet.com/fortinet/blog/psirt","category":"vendor_blog"},
-  {"name":"Mandiant Blog","url":"https://www.mandiant.com/resources/blog/rss.xml","category":"vendor_blog"},
-  {"name":"Proofpoint Threat Insight","url":"https://www.proofpoint.com/us/threat-insight-blog.xml","category":"vendor_blog"},
-  {"name":"SentinelOne / SentinelLabs","url":"https://www.sentinelone.com/feed/","category":"vendor_blog"},
-  {"name":"Google Online Security Blog","url":"https://feeds.feedburner.com/GoogleOnlineSecurityBlog","category":"malware_research"},
-  {"name":"Google Project Zero","url":"https://googleprojectzero.blogspot.com/feeds/posts/default?alt=rss","category":"malware_research"},
-  {"name":"Malwarebytes Labs","url":"https://blog.malwarebytes.com/feed/","category":"malware_research"},
-  {"name":"Securelist (Kaspersky)","url":"https://securelist.com/feed/","category":"malware_research"},
-  {"name":"WeLiveSecurity (ESET)","url":"https://www.welivesecurity.com/en/rss/feed/","category":"malware_research"},
-  {"name":"Exploit-DB","url":"https://www.exploit-db.com/rss.xml","category":"exploit_research"},
-  {"name":"ZDI Published Advisories","url":"https://www.zerodayinitiative.com/rss/published/","category":"exploit_research"},
-  {"name":"ZDI Upcoming Advisories","url":"https://www.zerodayinitiative.com/rss/upcoming/","category":"exploit_research"},
-  {"name":"SANS ISC Diary","url":"https://isc.sans.edu/rssfeed.xml","category":"community"},
-  {"name":"SANS ISC Diary (Full)","url":"https://isc.sans.edu/rssfeed_full.xml","category":"community"}
-];
-
-// Proxy chain — tried in order until one returns content
-const PROXIES = [
-  {
-    url: u => `https://git.benjaminbarnes.workers.dev/?url=${encodeURIComponent(u)}`,
-    extract: d => typeof d === 'string' ? d : JSON.stringify(d)
-  },
-  {
-    url: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-    extract: d => d.contents
-  },
-  {
-    url: u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    extract: d => typeof d === 'string' ? d : JSON.stringify(d)
-  },
-  {
-    url: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    extract: d => typeof d === 'string' ? d : JSON.stringify(d)
-  },
-];
-
-async function proxyFetch(targetUrl) {
-  // Try direct first (works for permissive origins like raw.githubusercontent.com)
-  try {
-    const r = await fetch(targetUrl);
-    if (r.ok) return await r.text();
-  } catch (_) {}
-
-  for (const proxy of PROXIES) {
-    try {
-      const r = await fetch(proxy.url(targetUrl), { signal: AbortSignal.timeout(8000) });
-      if (!r.ok) continue;
-      const ct = r.headers.get('content-type') || '';
-      const body = ct.includes('json') ? await r.json() : await r.text();
-      const text = typeof body === 'string' ? body : proxy.extract(body);
-      if (text && text.length > 100) return text;
-    } catch (_) {}
-  }
-  throw new Error('all proxies failed — feed may block external access');
-}
-
-let feeds = FEEDS;
-let currentFeed = null;
-let openArticle = null;
-
-const categoryTags = {
-  cert: 'cert', news: 'news', vulnerability: 'vuln',
-  vendor_advisory: 'vendor', vendor_blog: 'vendor',
-  malware_research: 'malware', exploit_research: 'exploit', community: 'community'
-};
-
-const categoryIcons = {
-  cert: '&#x26A0;', news: '&#x1F4F0;', vulnerability: '&#x1F6A8;',
-  vendor_advisory: '&#x1F4E6;', vendor_blog: '&#x1F4DD;',
-  malware_research: '&#x1F9EC;', exploit_research: '&#x1F4A3;', community: '&#x1F465;'
-};
-
-function setStatus(msg) {
-  document.getElementById('statusbar').textContent = msg;
-}
-
-function buildSidebar(feeds) {
-  const list = document.getElementById('feed-list');
-  const categories = {};
-  for (const f of feeds) {
-    if (!categories[f.category]) categories[f.category] = [];
-    categories[f.category].push(f);
-  }
-  let html = '';
-  for (const [cat, items] of Object.entries(categories)) {
-    const label = cat.replace(/_/g, ' ');
-    const icon = categoryIcons[cat] || '&#x25B8;';
-    html += `<div class="category-header">${icon} ${label} (${items.length})</div>`;
-    for (const f of items) {
-      const idx = feeds.indexOf(f);
-      html += `<div class="feed-item" data-idx="${idx}" onclick="selectFeed(${idx})">
-        <span class="feed-name">${f.name}</span>
-      </div>`;
-    }
-  }
-  list.innerHTML = html;
-  document.getElementById('sidebar-dot').classList.remove('loading');
-  document.getElementById('sidebar-label').textContent = `${feeds.length} feeds ready`;
-}
-
-function loadFeeds() {
-  buildSidebar(feeds);
-  setStatus(`${feeds.length} feeds ready — source: github.com/mr-r3b00t/cyber_rss`);
-}
-
-function selectFeed(idx) {
-  currentFeed = idx;
-  openArticle = null;
-  document.querySelectorAll('.feed-item').forEach(el => el.classList.remove('active'));
-  document.querySelector(`.feed-item[data-idx="${idx}"]`)?.classList.add('active');
-  const f = feeds[idx];
-  document.getElementById('feed-title').textContent = f.name;
-  document.getElementById('feed-title').style.color = 'var(--text)';
-  const tag = categoryTags[f.category] || 'tag';
-  document.getElementById('feed-meta').innerHTML = `<span class="tag ${tag}">${f.category.replace(/_/g,' ')}</span>`;
-  document.getElementById('refresh-btn').style.display = 'inline';
-  loadArticles(f);
-}
-
-function refreshFeed() {
-  if (currentFeed !== null) {
-    openArticle = null;
-    loadArticles(feeds[currentFeed]);
-  }
-}
-
-async function loadArticles(feed) {
-  const container = document.getElementById('articles');
-  container.innerHTML = '<div class="loading-msg"><span class="dot loading"></span> fetching ' + feed.name + '...</div>';
-  setStatus('fetching: ' + feed.url);
-  try {
-    const text = await proxyFetch(feed.url);
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(text, 'text/xml');
-    const parserError = xml.querySelector('parsererror');
-    if (parserError) throw new Error('feed returned invalid XML');
-    const items = Array.from(xml.querySelectorAll('item, entry'));
-    if (!items.length) throw new Error('no items found in feed');
-    renderArticles(items, feed);
-    setStatus(`loaded ${items.length} articles from ${feed.name}`);
-  } catch (e) {
-    container.innerHTML = `<div class="error-msg">
-      &#x26A0; failed to load <strong>${feed.name}</strong><br><br>
-      <span style="opacity:0.7;font-size:11px">${e.message}<br><br>
-      Some feeds block all proxy services. Try a different feed, or open the URL directly in your browser.</span>
-    </div>`;
-    setStatus('error loading feed: ' + e.message);
-  }
-}
-
-function getNodeText(item, ...selectors) {
-  for (const sel of selectors) {
-    const el = item.querySelector(sel);
-    if (el) return el.textContent.trim();
-  }
-  return '';
-}
-
-function stripHtml(html) {
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
-}
-
-function formatDate(str) {
-  if (!str) return '';
-  try {
-    const d = new Date(str);
-    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) + ' ' +
-           d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
-  } catch { return str.substring(0, 16); }
-}
-
-function renderArticles(items, feed) {
-  const tag = categoryTags[feed.category] || '';
-  const container = document.getElementById('articles');
-  let html = '';
-  items.forEach((item, i) => {
-    const title = getNodeText(item, 'title');
-    const link = item.querySelector('link')?.textContent?.trim() ||
-                 item.querySelector('link')?.getAttribute('href') || '#';
-    const date = formatDate(getNodeText(item, 'pubDate', 'published', 'updated', 'dc\\:date'));
-    const desc = stripHtml(getNodeText(item, 'description', 'summary', 'content\\:encoded', 'content'));
-    const short = desc.length > 300 ? desc.substring(0, 300) + '…' : desc;
-    html += `<div class="article-item" id="art-${i}" onclick="toggleArticle(${i}, '${link.replace(/'/g,"\\'")}')">
-      <div class="article-title">${title || '(no title)'}</div>
-      <div class="article-meta">
-        ${date ? `<span>&#x1F554; ${date}</span>` : ''}
-        <span class="tag ${tag}">${feed.category.replace(/_/g,' ')}</span>
-      </div>
-      <div class="article-body" id="body-${i}">
-        <p>${short || '(no description)'}</p>
-        <a class="article-link" href="${link}" target="_blank" rel="noopener">open article &#x2197;</a>
-      </div>
-    </div>`;
-  });
-  container.innerHTML = html;
-}
-
-function toggleArticle(i, link) {
-  const body = document.getElementById('body-' + i);
-  const item = document.getElementById('art-' + i);
-  if (openArticle === i) {
-    body.classList.remove('visible');
-    item.classList.remove('open');
-    openArticle = null;
-  } else {
-    if (openArticle !== null) {
-      document.getElementById('body-' + openArticle)?.classList.remove('visible');
-      document.getElementById('art-' + openArticle)?.classList.remove('open');
-    }
-    body.classList.add('visible');
-    item.classList.add('open');
-    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    openArticle = i;
-  }
-}
-
-loadFeeds();
-</script>
+<script src="js/feeds.js"></script>
+<script src="js/skin.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
