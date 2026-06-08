@@ -274,7 +274,33 @@
 
 <script>
 const README_URL = 'https://raw.githubusercontent.com/mr-r3b00t/cyber_rss/refs/heads/main/README.md';
-const PROXY = 'https://api.allorigins.win/get?url=';
+
+const PROXIES = [
+  { url: 'https://api.allorigins.win/get?url=', extract: d => d.contents },
+  { url: 'https://api.codetabs.com/v1/proxy?quest=', extract: d => typeof d === 'string' ? d : JSON.stringify(d) },
+  { url: 'https://corsproxy.io/?', extract: d => typeof d === 'string' ? d : JSON.stringify(d) },
+];
+
+async function proxyFetch(targetUrl) {
+  // Try direct first (works for some feeds like raw.githubusercontent.com)
+  try {
+    const r = await fetch(targetUrl);
+    if (r.ok) return await r.text();
+  } catch (_) {}
+
+  // Try each proxy in order
+  for (const proxy of PROXIES) {
+    try {
+      const r = await fetch(proxy.url + encodeURIComponent(targetUrl));
+      if (!r.ok) continue;
+      const ct = r.headers.get('content-type') || '';
+      const body = ct.includes('json') ? await r.json() : await r.text();
+      const text = typeof body === 'string' ? body : proxy.extract(body);
+      if (text && text.length > 0) return text;
+    } catch (_) {}
+  }
+  throw new Error('all proxies failed for: ' + targetUrl);
+}
 
 let feeds = [];
 let currentFeed = null;
@@ -335,9 +361,8 @@ function buildSidebar(feeds) {
 async function loadFeeds() {
   try {
     setStatus('fetching feed list from github...');
-    const resp = await fetch(PROXY + encodeURIComponent(README_URL));
-    const data = await resp.json();
-    feeds = parseReadme(data.contents);
+    const text = await proxyFetch(README_URL);
+    feeds = parseReadme(text);
     buildSidebar(feeds);
     setStatus(`loaded ${feeds.length} feeds across 8 categories`);
   } catch (e) {
@@ -373,10 +398,9 @@ async function loadArticles(feed) {
   container.innerHTML = '<div class="loading-msg"><span class="dot loading"></span> fetching ' + feed.name + '...</div>';
   setStatus('fetching: ' + feed.url);
   try {
-    const resp = await fetch(PROXY + encodeURIComponent(feed.url));
-    const data = await resp.json();
+    const text = await proxyFetch(feed.url);
     const parser = new DOMParser();
-    const xml = parser.parseFromString(data.contents, 'text/xml');
+    const xml = parser.parseFromString(text, 'text/xml');
     const items = Array.from(xml.querySelectorAll('item, entry'));
     if (!items.length) throw new Error('no items found in feed');
     renderArticles(items, feed);
