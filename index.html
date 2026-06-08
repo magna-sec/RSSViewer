@@ -319,7 +319,7 @@
 <div id="header">
   <div>
     <h1>&#x25A0; CYBER FEED READER <span class="blink">_</span></h1>
-    <div class="subtitle">51 feeds &bull; 8 categories &bull; live intelligence</div>
+    <div class="subtitle">45 feeds &bull; 8 categories &bull; live intelligence</div>
   </div>
 </div>
 
@@ -351,7 +351,55 @@
 <div id="statusbar">ready</div>
 
 <script>
-const README_URL = 'https://raw.githubusercontent.com/mr-r3b00t/cyber_rss/refs/heads/main/README.md';
+// Feed list sourced from https://github.com/mr-r3b00t/cyber_rss
+// Broken feeds removed after live testing (cyber.gov.au, checkpoint, rapid7, google TAG, ZDI blog)
+const FEEDS = [
+  {"name":"CERT-FR (ANSSI)","url":"https://www.cert.ssi.gouv.fr/feed/","category":"cert"},
+  {"name":"CISA Cybersecurity Advisories","url":"https://www.cisa.gov/cybersecurity-advisories/all.xml","category":"cert"},
+  {"name":"CISA ICS Advisories","url":"https://www.cisa.gov/cybersecurity-advisories/ics-advisories.xml","category":"cert"},
+  {"name":"CISA ICS Medical Advisories","url":"https://www.cisa.gov/cybersecurity-advisories/ics-medical-advisories.xml","category":"cert"},
+  {"name":"JPCERT/CC","url":"https://www.jpcert.or.jp/english/rss/jpcert-en.rdf","category":"cert"},
+  {"name":"JPCERT/CC Blog","url":"https://blogs.jpcert.or.jp/en/atom.xml","category":"cert"},
+  {"name":"UK NCSC All","url":"https://www.ncsc.gov.uk/api/1/services/v1/all-rss-feed.xml","category":"cert"},
+  {"name":"UK NCSC Guidance","url":"https://www.ncsc.gov.uk/api/1/services/v1/guidance-rss-feed.xml","category":"cert"},
+  {"name":"UK NCSC News","url":"https://www.ncsc.gov.uk/api/1/services/v1/news-rss-feed.xml","category":"cert"},
+  {"name":"UK NCSC Reports","url":"https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml","category":"cert"},
+  {"name":"Bleeping Computer (forum)","url":"https://www.bleepingcomputer.com/forum45.xml","category":"news"},
+  {"name":"BleepingComputer","url":"https://www.bleepingcomputer.com/feed/","category":"news"},
+  {"name":"CyberScoop","url":"https://www.cyberscoop.com/feed","category":"news"},
+  {"name":"Dark Reading","url":"https://www.darkreading.com/rss.xml","category":"news"},
+  {"name":"Intelligence Online","url":"https://feeds.feedburner.com/IntelligenceOnline","category":"news"},
+  {"name":"Krebs on Security","url":"https://krebsonsecurity.com/feed/","category":"news"},
+  {"name":"Risky Business Podcast","url":"https://risky.biz/rss.xml","category":"news"},
+  {"name":"Schneier on Security","url":"https://www.schneier.com/feed/atom/","category":"news"},
+  {"name":"SecurityWeek","url":"https://feeds.feedburner.com/securityweek","category":"news"},
+  {"name":"The Hacker News","url":"https://feeds.feedburner.com/TheHackersNews","category":"news"},
+  {"name":"The Record","url":"https://therecord.media/feed/","category":"news"},
+  {"name":"CVEfeed.io","url":"https://cvefeed.io/rssfeed/latest.xml","category":"vulnerability"},
+  {"name":"FortiGuard PSIRT","url":"https://www.fortiguard.com/rss/ir.xml","category":"vulnerability"},
+  {"name":"Microsoft Security Updates","url":"https://api.msrc.microsoft.com/update-guide/rss","category":"vulnerability"},
+  {"name":"Palo Alto Security Advisories","url":"https://security.paloaltonetworks.com/rss.xml","category":"vulnerability"},
+  {"name":"Qualys Blog","url":"https://blog.qualys.com/feed","category":"vulnerability"},
+  {"name":"Apple Developer Releases","url":"https://developer.apple.com/news/releases/rss/releases.rss","category":"vendor_advisory"},
+  {"name":"Apple Newsroom","url":"https://www.apple.com/newsroom/rss-feed.rss","category":"vendor_advisory"},
+  {"name":"Cisco Security Blog","url":"https://blogs.cisco.com/security/feed","category":"vendor_advisory"},
+  {"name":"Cisco Talos Intelligence","url":"https://feeds.feedburner.com/feedburner/Talos","category":"vendor_blog"},
+  {"name":"Elastic Security Labs","url":"https://www.elastic.co/security-labs/rss/feed.xml","category":"vendor_blog"},
+  {"name":"Fortinet Threat Research","url":"https://feeds.fortinet.com/fortinet/blog/psirt","category":"vendor_blog"},
+  {"name":"Mandiant Blog","url":"https://www.mandiant.com/resources/blog/rss.xml","category":"vendor_blog"},
+  {"name":"Proofpoint Threat Insight","url":"https://www.proofpoint.com/us/threat-insight-blog.xml","category":"vendor_blog"},
+  {"name":"SentinelOne / SentinelLabs","url":"https://www.sentinelone.com/feed/","category":"vendor_blog"},
+  {"name":"Google Online Security Blog","url":"https://feeds.feedburner.com/GoogleOnlineSecurityBlog","category":"malware_research"},
+  {"name":"Google Project Zero","url":"https://googleprojectzero.blogspot.com/feeds/posts/default?alt=rss","category":"malware_research"},
+  {"name":"Malwarebytes Labs","url":"https://blog.malwarebytes.com/feed/","category":"malware_research"},
+  {"name":"Securelist (Kaspersky)","url":"https://securelist.com/feed/","category":"malware_research"},
+  {"name":"WeLiveSecurity (ESET)","url":"https://www.welivesecurity.com/en/rss/feed/","category":"malware_research"},
+  {"name":"Exploit-DB","url":"https://www.exploit-db.com/rss.xml","category":"exploit_research"},
+  {"name":"ZDI Published Advisories","url":"https://www.zerodayinitiative.com/rss/published/","category":"exploit_research"},
+  {"name":"ZDI Upcoming Advisories","url":"https://www.zerodayinitiative.com/rss/upcoming/","category":"exploit_research"},
+  {"name":"SANS ISC Diary","url":"https://isc.sans.edu/rssfeed.xml","category":"community"},
+  {"name":"SANS ISC Diary (Full)","url":"https://isc.sans.edu/rssfeed_full.xml","category":"community"}
+];
 
 // Proxy chain — tried in order until one returns content
 const PROXIES = [
@@ -393,7 +441,7 @@ async function proxyFetch(targetUrl) {
   throw new Error('all proxies failed — feed may block external access');
 }
 
-let feeds = [];
+let feeds = FEEDS;
 let currentFeed = null;
 let openArticle = null;
 
@@ -411,18 +459,6 @@ const categoryIcons = {
 
 function setStatus(msg) {
   document.getElementById('statusbar').textContent = msg;
-}
-
-function parseReadme(md) {
-  const results = [];
-  let currentCat = 'uncategorized';
-  for (const line of md.split('\n')) {
-    const catMatch = line.match(/^## (.+)/);
-    if (catMatch) { currentCat = catMatch[1].trim().replace(/\s*\(\d+\)/, ''); continue; }
-    const feedMatch = line.match(/^\s*-\s*\[(.+?)\]\((.+?)\)/);
-    if (feedMatch) results.push({ name: feedMatch[1], url: feedMatch[2], category: currentCat });
-  }
-  return results;
 }
 
 function buildSidebar(feeds) {
@@ -449,18 +485,9 @@ function buildSidebar(feeds) {
   document.getElementById('sidebar-label').textContent = `${feeds.length} feeds ready`;
 }
 
-async function loadFeeds() {
-  try {
-    setStatus('fetching feed list from github...');
-    const text = await proxyFetch(README_URL);
-    feeds = parseReadme(text);
-    buildSidebar(feeds);
-    setStatus(`loaded ${feeds.length} feeds across 8 categories`);
-  } catch (e) {
-    document.getElementById('sidebar-label').textContent = 'failed to load';
-    document.getElementById('feed-list').innerHTML = '<div style="padding:12px;font-size:11px;color:var(--danger)">error loading feed list. check console.</div>';
-    setStatus('error: ' + e.message);
-  }
+function loadFeeds() {
+  buildSidebar(feeds);
+  setStatus(`${feeds.length} feeds ready — source: github.com/mr-r3b00t/cyber_rss`);
 }
 
 function selectFeed(idx) {
