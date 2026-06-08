@@ -356,6 +356,10 @@ const README_URL = 'https://raw.githubusercontent.com/mr-r3b00t/cyber_rss/refs/h
 // Proxy chain — tried in order until one returns content
 const PROXIES = [
   {
+    url: u => `https://git.benjaminbarnes.workers.dev/?url=${encodeURIComponent(u)}`,
+    extract: d => typeof d === 'string' ? d : JSON.stringify(d)
+  },
+  {
     url: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
     extract: d => d.contents
   },
@@ -365,10 +369,6 @@ const PROXIES = [
   },
   {
     url: u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    extract: d => typeof d === 'string' ? d : JSON.stringify(d)
-  },
-  {
-    url: u => `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(u)}`,
     extract: d => typeof d === 'string' ? d : JSON.stringify(d)
   },
 ];
