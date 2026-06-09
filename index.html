@@ -14,7 +14,8 @@
 <body>
 
 <div id="header">
-  <div>
+  <button id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">&#x2630;</button>
+  <div style="flex:1;min-width:0">
     <h1>&#x25A0; CYBER FEED READER <span class="blink">_</span></h1>
     <div id="subtitle">loading 45 feeds…</div>
   </div>
@@ -24,17 +25,20 @@
 <div id="layout">
 
   <div id="sidebar">
-    <div class="sidebar-status">
-      <div class="dot loading" id="sidebar-dot"></div>
-      <span id="sidebar-label">loading…</span>
-    </div>
-    <div id="feed-list">
-      <div class="sidebar-all-item" id="all-feeds-btn" onclick="selectAll()">
-        &#x25A0; All Feeds
-        <span class="count"></span>
+    <div id="sidebar-inner">
+      <div class="sidebar-status">
+        <div class="dot loading" id="sidebar-dot"></div>
+        <span id="sidebar-label">loading…</span>
+      </div>
+      <div id="feed-list">
+        <div class="sidebar-all-item" id="all-feeds-btn" onclick="selectAll()">
+          &#x25A0; All Feeds
+          <span class="count"></span>
+        </div>
       </div>
     </div>
   </div>
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
   <div id="main">
 

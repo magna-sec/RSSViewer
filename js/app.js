@@ -158,6 +158,17 @@ function setSidebarActive(which) {
   );
 }
 
+// ── Sidebar toggle ─────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('layout').classList.toggle('sidebar-open');
+}
+function closeSidebar() {
+  document.getElementById('layout').classList.remove('sidebar-open');
+}
+function closeSidebarOnMobile() {
+  if (window.innerWidth <= 680) closeSidebar();
+}
+
 // ── Aggregated view ────────────────────────────────────────────
 function selectAll() {
   mode = 'all';
@@ -166,6 +177,8 @@ function selectAll() {
   setSidebarActive('all');
   document.getElementById('filter-bar').style.display  = '';
   document.getElementById('feed-header').style.display = 'none';
+
+  closeSidebarOnMobile();
 
   if (allArticles.length) {
     const filtered = currentFilter === 'all' ? allArticles : allArticles.filter(a => a.category === currentFilter);
@@ -194,6 +207,8 @@ function selectFeed(idx) {
   document.getElementById('feed-title').textContent = f.name;
   document.getElementById('feed-meta').innerHTML =
     `<span class="tag ${tag}">${f.category.replace(/_/g,' ')}</span>`;
+
+  closeSidebarOnMobile();
 
   document.getElementById('articles').innerHTML =
     `<div class="placeholder"><div class="big">&#x25A1;</div><div>fetching ${f.name}…</div></div>`;
